@@ -1,7 +1,10 @@
 // src/SupplierForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './SupplierForm.css'; // Crearemos este CSS también
+import './SupplierForm.css';
+
+// ¡LÍNEA CLAVE AJUSTADA! Define la URL base de tu API aquí.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function SupplierForm({ onSupplierAdded, supplierToEdit, onSupplierUpdated, onCancelEdit }) {
   const initialFormState = {
@@ -14,7 +17,6 @@ function SupplierForm({ onSupplierAdded, supplierToEdit, onSupplierUpdated, onCa
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // Cuando supplierToEdit cambia (ej. se selecciona un proveedor para editar), actualiza el formulario
     if (supplierToEdit) {
       setFormData(supplierToEdit);
     } else {
@@ -38,11 +40,13 @@ function SupplierForm({ onSupplierAdded, supplierToEdit, onSupplierUpdated, onCa
     try {
       let response;
       if (supplierToEdit) {
-        response = await axios.put(`http://localhost:5000/api/suppliers/${supplierToEdit.id}`, formData);
+        // AJUSTE AQUÍ: Usando API_BASE_URL para PUT
+        response = await axios.put(`${API_BASE_URL}/api/suppliers/${supplierToEdit.id}`, formData);
         if (onSupplierUpdated) onSupplierUpdated(response.data);
         setMessage('Proveedor actualizado con éxito!');
       } else {
-        response = await axios.post('http://localhost:5000/api/suppliers', formData);
+        // AJUSTE AQUÍ: Usando API_BASE_URL para POST
+        response = await axios.post(`${API_BASE_URL}/api/suppliers`, formData);
         if (onSupplierAdded) onSupplierAdded(response.data);
         setMessage('Proveedor añadido con éxito!');
         setFormData(initialFormState); // Limpiar el formulario después de añadir
@@ -78,7 +82,7 @@ function SupplierForm({ onSupplierAdded, supplierToEdit, onSupplierUpdated, onCa
             type="text"
             id="contact_info"
             name="contact_info"
-            value={formData.contact_info || ''} // Asegura que no sea null si es opcional
+            value={formData.contact_info || ''}
             onChange={handleChange}
           />
         </div>

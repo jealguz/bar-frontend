@@ -1,7 +1,11 @@
-// src/ProductForm.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProductForm.css';
+
+// ¡LÍNEA CLAVE AJUSTADA! Define la URL base de tu API aquí.
+// Usará la variable de entorno VITE_API_URL si está definida (en Netlify),
+// de lo contrario, usará 'http://localhost:5000' para desarrollo local.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancelEdit }) {
   const initialFormState = {
@@ -9,7 +13,7 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
     descripcion: '',
     unidad: '',
     presentacion: '',
-    stock_minimo_base: 0, // Nuevo campo
+    stock_minimo_base: 0,
     stock_minimo: 0,
     stock_maximo: 0,
     inventario_actual: 0,
@@ -36,7 +40,8 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
     const fetchSuppliers = async () => {
       try {
         setSuppliersLoading(true);
-        const response = await axios.get('http://localhost:5000/api/suppliers');
+        // AJUSTE AQUÍ: Usando API_BASE_URL
+        const response = await axios.get(`${API_BASE_URL}/api/suppliers`);
         setSuppliers(response.data);
       } catch (err) {
         console.error("Error al obtener los proveedores para el formulario:", err);
@@ -56,16 +61,9 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
       newFormData[name] = parseInt(value) || 0;
     }
 
-    // Si se edita stock_minimo, también actualizamos stock_minimo_base en el formulario
-    // para que se guarde correctamente la primera vez o si el usuario lo modifica manualmente.
-    if (name === 'stock_minimo' && !productToEdit) { // Solo al crear o si no es una edición de un producto existente para no sobrescribir stock_minimo_base
-         newFormData.stock_minimo_base = newFormData.stock_minimo;
-    } else if (name === 'stock_minimo' && productToEdit) {
-        // En edición, si el usuario cambia el stock_minimo, se asume que esa es la nueva base
-        // para futuros cálculos. Pero en este caso, el backend ya tiene la lógica con el hook.
-        // Aquí no tocamos stock_minimo_base a menos que sea el campo stock_minimo_base el que se edite (que no lo es).
+    if (name === 'stock_minimo' && !productToEdit) {
+      newFormData.stock_minimo_base = newFormData.stock_minimo;
     }
-
 
     const currentStockMinimo = (name === 'stock_minimo' ? (parseInt(value) || 0) : newFormData.stock_minimo);
     const currentInventarioActual = (name === 'inventario_actual' ? (parseInt(value) || 0) : newFormData.inventario_actual);
@@ -92,11 +90,13 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
 
       let response;
       if (productToEdit) {
-        response = await axios.put(`http://localhost:5000/api/products/${productToEdit.id}`, dataToSend);
+        // AJUSTE AQUÍ: Usando API_BASE_URL para PUT
+        response = await axios.put(`${API_BASE_URL}/api/products/${productToEdit.id}`, dataToSend);
         if (onProductUpdated) onProductUpdated(response.data);
         setMessage('Producto actualizado con éxito!');
       } else {
-        response = await axios.post('http://localhost:5000/api/products', dataToSend);
+        // AJUSTE AQUÍ: Usando API_BASE_URL para POST
+        response = await axios.post(`${API_BASE_URL}/api/products`, dataToSend);
         if (onProductAdded) onProductAdded(response.data);
         setMessage('Producto añadido con éxito!');
         setFormData(initialFormState);

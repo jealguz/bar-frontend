@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './SupplierList.css';
 
+// ¡LÍNEA CLAVE AJUSTADA! Define la URL base de tu API aquí.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
 // Acepta la nueva prop onSupplierChange
 function SupplierList({ onSupplierChange }) {
   const [suppliers, setSuppliers] = useState([]);
@@ -18,7 +21,8 @@ function SupplierList({ onSupplierChange }) {
   const fetchSuppliers = async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/suppliers');
+      // AJUSTE AQUÍ
+      const response = await axios.get(`${API_BASE_URL}/api/suppliers`);
       setSuppliers(response.data);
       setError(null);
     } catch (err) {
@@ -42,7 +46,8 @@ function SupplierList({ onSupplierChange }) {
       return;
     }
     try {
-      const response = await axios.post('http://localhost:5000/api/suppliers', {
+      // AJUSTE AQUÍ
+      const response = await axios.post(`${API_BASE_URL}/api/suppliers`, {
         name: newSupplierName,
         contact: newSupplierContact,
       });
@@ -79,7 +84,8 @@ function SupplierList({ onSupplierChange }) {
       return;
     }
     try {
-      const response = await axios.put(`http://localhost:5000/api/suppliers/${supplierId}`, {
+      // AJUSTE AQUÍ
+      const response = await axios.put(`${API_BASE_URL}/api/suppliers/${supplierId}`, {
         name: editedSupplierName,
         contact: editedSupplierContact,
       });
@@ -104,7 +110,8 @@ function SupplierList({ onSupplierChange }) {
       setMessage('');
       setError('');
       try {
-        await axios.delete(`http://localhost:5000/api/suppliers/${supplierId}`);
+        // AJUSTE AQUÍ
+        await axios.delete(`${API_BASE_URL}/api/suppliers/${supplierId}`);
         setMessage('Proveedor eliminado con éxito!');
         fetchSuppliers(); // Recarga la lista local
         if (onSupplierChange) { // Llama a la función de callback

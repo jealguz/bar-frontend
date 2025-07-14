@@ -1,13 +1,14 @@
-// src/App.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import ProductForm from './ProductForm';
 import SupplierList from './SupplierList';
-import InventoryHistory from './InventoryHistory'; // ¡NUEVA IMPORTACIÓN! ASUME QUE ESTÁ EN LA MISMA CARPETA QUE App.jsx
-// Si InventoryHistory está en una subcarpeta como 'components', sería:
-// import InventoryHistory from './components/InventoryHistory.jsx';
-
+import InventoryHistory from './InventoryHistory';
 import './App.css';
+
+// ¡NUEVA LÍNEA CLAVE! Define la URL base de tu API aquí.
+// Usará la variable de entorno VITE_API_URL si está definida (en Netlify),
+// de lo contrario, usará 'http://localhost:5000' para desarrollo local.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -15,7 +16,7 @@ function App() {
   const [error, setError] = useState(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
-  const [currentView, setCurrentView] = useState('products'); // Estado para controlar la vista actual
+  const [currentView, setCurrentView] = useState('products');
   const [editingCell, setEditingCell] = useState(null);
   const [tempCellValue, setTempCellValue] = useState('');
 
@@ -23,12 +24,12 @@ function App() {
   const [suppliersNavLoading, setSuppliersNavLoading] = useState(true);
   const [suppliersNavError, setSuppliersNavError] = useState(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState(null);
-  const [message, setMessage] = useState(''); // Estado para mensajes de éxito/error globales
+  const [message, setMessage] = useState('');
 
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get('http://localhost:5000/api/products');
+      const response = await axios.get(`${API_BASE_URL}/api/products`); // AJUSTE AQUÍ
       setProducts(response.data);
       setError(null);
     } catch (err) {
@@ -42,7 +43,7 @@ function App() {
   const fetchSuppliersForNav = useCallback(async () => {
     try {
       setSuppliersNavLoading(true);
-      const response = await axios.get('http://localhost:5000/api/suppliers');
+      const response = await axios.get(`${API_BASE_URL}/api/suppliers`); // AJUSTE AQUÍ
       setSuppliersForNav(response.data);
       setSuppliersNavError(null);
     } catch (err) {
@@ -61,7 +62,6 @@ function App() {
     if (currentView === 'products' || currentView === 'products_to_order') {
       fetchProducts();
     }
-    // No necesitamos fetchProducts si la vista es 'history' o 'suppliers' ya que esos componentes se encargan de sus propios datos
   }, [currentView, selectedSupplierId, fetchProducts]);
 
   const handleProductAdded = (newProduct) => {
@@ -79,7 +79,7 @@ function App() {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       try {
-        await axios.delete(`http://localhost:5000/api/products/${productId}`);
+        await axios.delete(`${API_BASE_URL}/api/products/${productId}`); // AJUSTE AQUÍ
         setProducts((prevProducts) => prevProducts.filter((p) => p.id !== productId));
         console.log(`Producto con ID ${productId} eliminado.`);
       } catch (err) {
@@ -100,7 +100,6 @@ function App() {
     setShowProductForm(false);
   };
 
-  // Solo Stock Mínimo e Inventario Actual son editables en línea para que los calculados se actualicen.
   const editableFields = ['stock_minimo', 'inventario_actual'];
 
   const handleDoubleClick = (productId, fieldName, currentValue) => {
@@ -120,7 +119,7 @@ function App() {
       if (isNaN(parsedValue)) {
         alert('Por favor, ingresa un número válido.');
         setEditingCell(null);
-        fetchProducts(); // Refrescar para restaurar el valor original
+        fetchProducts();
         return;
       }
 
@@ -130,24 +129,19 @@ function App() {
       }
 
       let updateData = { ...productToUpdate, [fieldName]: parsedValue };
-
-      // Recalcular Stock Máximo y Cantidad Solicitada en el Frontend
       updateData.stock_maximo = Math.ceil(updateData.stock_minimo * 1.30);
       updateData.cantidad_solicitada = Math.max(0, updateData.stock_maximo - updateData.inventario_actual);
-
-      // Eliminar el objeto Supplier anidado antes de enviar la actualización
-      // para evitar errores con Sequelize que espera solo el supplierId
       delete updateData.Supplier;
 
-      await axios.put(`http://localhost:5000/api/products/${productId}`, updateData);
+      await axios.put(`${API_BASE_URL}/api/products/${productId}`, updateData); // AJUSTE AQUÍ
 
-      fetchProducts(); // Vuelve a obtener los productos para reflejar los cambios y los cálculos del backend
+      fetchProducts();
       setEditingCell(null);
       setMessage('¡Producto actualizado exitosamente!');
     } catch (err) {
       console.error("Error al actualizar el producto en línea:", err.response ? err.response.data : err.message);
       setError('Error al guardar el cambio. Verifica que el valor sea válido y el backend esté funcionando.');
-      fetchProducts(); // Refrescar para restaurar el valor original en caso de error
+      fetchProducts();
       setEditingCell(null);
     } finally {
       setTimeout(() => {
@@ -166,19 +160,17 @@ function App() {
       e.target.blur();
     } else if (e.key === 'Escape') {
       setEditingCell(null);
-      // Restaurar el valor original si se cancela la edición
       setTempCellValue(products.find(p => p.id === productId)?.[fieldName] || '');
     }
   };
 
-  // === NUEVAS FUNCIONES PARA AJUSTES ESTACIONALES ===
   const handleActivateHighSeason = async () => {
     if (window.confirm('¿Estás seguro de que quieres activar la temporada alta (aumentar Stock Mínimo en 30% para todos los productos)? Esto también ajustará el Stock Máximo y la Cantidad Solicitada.')) {
       try {
         setLoading(true);
-        await axios.post('http://localhost:5000/api/products/activate-high-season');
+        await axios.post(`${API_BASE_URL}/api/products/activate-high-season`); // AJUSTE AQUÍ
         setMessage('¡Temporada alta activada y productos ajustados!');
-        await fetchProducts(); // Refrescar los productos después del ajuste
+        await fetchProducts();
       } catch (err) {
         console.error("Error al activar temporada alta:", err.response ? err.response.data : err.message);
         setError('Error al activar la temporada alta.');
@@ -193,9 +185,9 @@ function App() {
     if (window.confirm('¿Estás seguro de que quieres desactivar la temporada alta (restaurar Stock Mínimo a valores base para todos los productos)? Esto también ajustará el Stock Máximo y la Cantidad Solicitada.')) {
       try {
         setLoading(true);
-        await axios.post('http://localhost:5000/api/products/deactivate-high-season');
+        await axios.post(`${API_BASE_URL}/api/products/deactivate-high-season`); // AJUSTE AQUÍ
         setMessage('¡Temporada alta desactivada y productos restaurados!');
-        await fetchProducts(); // Refrescar los productos después del ajuste
+        await fetchProducts();
       } catch (err) {
         console.error("Error al desactivar temporada alta:", err.response ? err.response.data : err.message);
         setError('Error al desactivar la temporada alta.');
@@ -205,7 +197,6 @@ function App() {
       }
     }
   };
-  // === FIN DE FUNCIONES DE AJUSTES ESTACIONALES ===
 
   const handlePrint = () => {
     window.print();
@@ -220,7 +211,6 @@ function App() {
     : 'Todos los Productos';
 
   const productsToOrder = products.filter(product => product.cantidad_solicitada > 0);
-
 
   return (
     <div className="App">
@@ -282,14 +272,13 @@ function App() {
           Productos Pendientes de Compra
         </button>
 
-        {/* ¡NUEVO BOTÓN DE NAVEGACIÓN PARA EL HISTORIAL! */}
         <button
           className={currentView === 'history' ? 'nav-button active' : 'nav-button'}
           onClick={() => {
             setCurrentView('history');
             setShowProductForm(false);
             setProductToEdit(null);
-            setSelectedSupplierId(null); // Asegurarse de que no haya un proveedor seleccionado al ver el historial
+            setSelectedSupplierId(null);
           }}
         >
           Historial de Movimientos
@@ -339,8 +328,7 @@ function App() {
                 productToEdit={productToEdit}
                 onProductUpdated={handleProductUpdated}
                 onCancelEdit={handleCancelProductEdit}
-                // Asegúrate de pasar los proveedores al ProductForm si los necesita para el selector
-                suppliers={suppliersForNav} // Pasa los proveedores al formulario
+                suppliers={suppliersForNav}
               />
             )}
 
@@ -482,7 +470,6 @@ function App() {
           <SupplierList onSupplierChange={fetchSuppliersForNav} />
         )}
 
-        {/* ¡NUEVO: Renderizar el componente InventoryHistory! */}
         {currentView === 'history' && (
           <InventoryHistory />
         )}
