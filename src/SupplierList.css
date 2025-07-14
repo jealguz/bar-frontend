@@ -1,0 +1,53 @@
+/* src/SupplierList.css */
+.supplier-list-container {
+  text-align: center;
+  padding: 20px;
+}
+
+.supplier-list-container h2 {
+  margin-bottom: 20px;
+}
+
+.add-supplier-button {
+  background-color: #007bff;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  margin-bottom: 20px;
+}
+
+.add-supplier-button:hover {
+  background-color: #0056b3;
+}
+
+.supplier-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.supplier-table th,
+.supplier-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.supplier-table th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+.supplier-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.supplier-table tbody tr:hover {
+  background-color: #f1f1f1;
+}
+
+/* Reutilizar estilos de botones de acción de App.css si es necesario
+   (action-button, edit-button, delete-button) */

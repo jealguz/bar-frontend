@@ -1,0 +1,429 @@
+/* src/App.css */
+.App {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    padding: 20px;
+    /* Añadido: Para un mejor control del ancho máximo del contenido */
+    max-width: 1200px; /* Ancho máximo para el contenido principal */
+    margin: 0 auto; /* Centrar la aplicación */
+    background-color: #fdfffe; /* Color de fondo claro */
+}
+
+.App-header {
+    margin-bottom: 30px;
+}
+
+.inventory-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    /* Añadido: Para que las columnas respeten los anchos definidos */
+    table-layout: fixed;
+}
+
+.inventory-table th,
+.inventory-table td {
+    border: 1px solid #ddd;
+    /* Modificado: Reducir padding para hacer las celdas más compactas */
+    padding: 6px; /* De 8px a 6px */
+    text-align: left;
+    /* Añadido: Ajustar el tamaño de fuente para toda la tabla */
+    font-size: 0.9em; /* Ligeramente más pequeño para mayor compactibilidad */
+    word-wrap: break-word; /* Para asegurar que el texto largo se ajuste */
+}
+
+.inventory-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    /* Añadido: Centrar texto en los encabezados */
+    text-align: center;
+}
+
+/* Ajuste de anchos para columnas específicas (ejemplo) */
+/* Los anchos exactos pueden necesitar ajuste fino después de ver la tabla en acción */
+.inventory-table th:nth-child(1), /* ID del producto */
+.inventory-table td:nth-child(1) {
+    width: 20%; /* Pequeño para ID */
+    text-align: center;
+}
+
+.inventory-table th:nth-child(2), /* Referencia Artículo */
+.inventory-table td:nth-child(2) {
+    width: 10%;
+}
+
+.inventory-table th:nth-child(3), /* Descripción */
+.inventory-table td:nth-child(3) {
+    width: 20%; /* Más espacio para la descripción */
+}
+
+.inventory-table th:nth-child(4), /* Unidad */
+.inventory-table td:nth-child(4) {
+    width: 8%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(5), /* Presentación */
+.inventory-table td:nth-child(5) {
+    width: 10%;
+}
+
+.inventory-table th:nth-child(6), /* Stock Mínimo Base */
+.inventory-table td:nth-child(6) {
+    width: 6%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(7), /* Stock Mínimo */
+.inventory-table td:nth-child(7) {
+    width: 6%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(8), /* Stock Máximo */
+.inventory-table td:nth-child(8) {
+    width: 8%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(9), /* Inventario Actual */
+.inventory-table td:nth-child(9) {
+    width: 8%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(10), /* Cantidad Solicitada */
+.inventory-table td:nth-child(10) {
+    width: 8%;
+    text-align: center;
+}
+
+.inventory-table th:nth-child(11), /* Proveedor */
+.inventory-table td:nth-child(11) {
+    width: 10%;
+}
+
+.inventory-table th:nth-child(12), /* Acciones (Editar/Eliminar) */
+.inventory-table td:nth-child(12) {
+    width: 10%;
+    text-align: center;
+}
+
+
+.inventory-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.inventory-table tbody tr:hover {
+    background-color: #f1f1f1;
+}
+
+/* src/App.css (continuación) */
+
+.add-product-button {
+    background-color: #007bff; /* Azul para añadir */
+    color: white;
+    padding: 10px 20px; /* Modificado: Ligeramente más pequeño */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em; /* Modificado: Ligeramente más pequeño */
+    margin-bottom: 20px; /* Modificado: Menos margen */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.add-product-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.action-button {
+    padding: 5px 10px; /* Modificado: Más compacto */
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8em; /* Modificado: Más pequeño */
+    margin-right: 3px; /* Modificado: Menos margen */
+    transition: background-color 0.3s ease;
+}
+
+.edit-button {
+    background-color: #ffc107; /* Amarillo para editar */
+    color: #333;
+}
+
+.edit-button:hover {
+    background-color: #e0a800;
+}
+
+.delete-button {
+    background-color: #dc3545; /* Rojo para eliminar */
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}
+
+/* src/App.css (continuación) */
+
+.main-nav {
+    margin-bottom: 25px; /* Modificado: Menos margen */
+    background-color: #eee;
+    padding: 8px; /* Modificado: Ligeramente más compacto */
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 10px; /* Modificado: Menos espacio entre botones */
+}
+
+.nav-button {
+    background-color: #f0f0f0;
+    color: #333;
+    padding: 8px 15px; /* Modificado: Más compacto */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.85em; /* Modificado: Ligeramente más pequeño */
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.nav-button:hover {
+    background-color: #e0e0e0;
+    border-color: #aaa;
+}
+
+.nav-button.active {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+.nav-button.active:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+/* src/App.css (continuación) */
+
+.editable-cell {
+    cursor: pointer;
+    position: relative;
+    /* Añadido: Alinear el texto dentro de las celdas editables */
+    text-align: center;
+}
+
+.editable-cell:hover {
+    background-color: #e6f7ff;
+}
+
+.editable-cell input {
+    /* Modificado: Ajuste de ancho y padding para que encaje mejor */
+    width: calc(100% - 10px); /* Ajustado para padding */
+    padding: 3px; /* Más pequeño */
+    border: 1px solid #007bff;
+    border-radius: 3px;
+    box-sizing: border-box;
+    font-size: 0.9em; /* Más pequeño para que coincida con el texto de la tabla */
+    text-align: center;
+    height: 100%; /* Para que el input ocupe toda la altura de la celda */
+}
+
+/* src/App.css */
+
+/* ... (estilos existentes) ... */
+
+.seasonal-adjustment-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 8px; /* Modificado: Más compacto */
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    flex-wrap: wrap;
+    gap: 10px; /* Espacio entre los botones y mensajes dentro del contenedor */
+}
+
+.seasonal-button {
+    background-color: #28a745;
+    color: white;
+    padding: 6px 12px; /* Modificado: Más pequeño */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em; /* Modificado: Más pequeño */
+    transition: background-color 0.3s ease;
+    margin: 0; /* Eliminar margin, usar gap del flex container */
+}
+
+.seasonal-button:hover {
+    background-color: #218838;
+}
+
+/* Estilos para mensajes dentro del contenedor */
+.seasonal-adjustment-container p {
+    margin: 0 5px; /* Modificado: Margen más pequeño */
+    font-size: 0.85em; /* Modificado: Más pequeño */
+}
+
+/* Estilos para los mensajes de éxito/error */
+.success-message {
+    color: green;
+    font-weight: bold;
+    margin-top: 8px; /* Modificado: Menos margen */
+    text-align: center;
+    font-size: 0.9em; /* Ajuste de fuente */
+}
+
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin-top: 8px; /* Modificado: Menos margen */
+    text-align: center;
+    font-size: 0.9em; /* Ajuste de fuente */
+}
+
+/* Ajuste para el h2 de la lista de productos si se superpone */
+main h2 {
+    margin-top: 15px; /* Modificado: Menos margen */
+    margin-bottom: 10px; /* Modificado: Menos margen */
+    font-size: 1.5em; /* Asegurar un tamaño estándar para los títulos */
+}
+
+/* src/App.css */
+
+.products-to-order-section {
+    margin-top: 25px; /* Modificado: Menos margen */
+    margin-bottom: 25px; /* Modificado: Menos margen */
+    padding: 15px; /* Modificado: Menos padding */
+    border: 1px solid #ffcc00;
+    border-radius: 8px;
+    background-color: #fffacd;
+}
+
+.products-to-order-section h2 {
+    color: #cc0000;
+    margin-top: 0;
+    margin-bottom: 10px; /* Modificado: Menos margen */
+    text-align: center;
+    font-size: 1.4em; /* Ajuste para el título de la sección */
+}
+
+.products-to-order-section p {
+    text-align: center;
+    margin-bottom: 15px; /* Modificado: Menos margen */
+    font-size: 0.9em; /* Ligeramente más pequeño */
+}
+
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px; /* Modificado: Menos margen */
+    table-layout: fixed; /* Añadido para controlar el ancho de las columnas */
+}
+
+.order-table th, .order-table td {
+    padding: 8px; /* Modificado: Menos padding */
+    border: 1px solid #ddd;
+    text-align: left;
+    font-size: 0.85em; /* Más pequeño para esta tabla */
+}
+
+/* Ajustes de ancho para las columnas de la tabla de pedidos */
+.order-table th:nth-child(1), /* Referencia Artículo */
+.order-table td:nth-child(1) {
+    width: 15%;
+}
+.order-table th:nth-child(2), /* Descripción */
+.order-table td:nth-child(2) {
+    width: 30%;
+}
+.order-table th:nth-child(3), /* Inventario Actual */
+.order-table td:nth-child(3) {
+    width: 15%;
+    text-align: center;
+}
+.order-table th:nth-child(4), /* Stock Mínimo */
+.order-table td:nth-child(4) {
+    width: 15%;
+    text-align: center;
+}
+.order-table th:nth-child(5), /* Cantidad Solicitada */
+.order-table td:nth-child(5) {
+    width: 15%;
+    text-align: center;
+}
+.order-table th:nth-child(6), /* Proveedor */
+.order-table td:nth-child(6) {
+    width: 10%;
+}
+
+
+.order-table th {
+    background-color: #f2f2f2;
+    color: #333;
+    text-align: center; /* Centrar encabezados */
+}
+
+.print-button-container {
+    text-align: center;
+    margin: 15px 0; /* Modificado: Menos margen */
+}
+
+.print-button {
+    background-color: #007bff;
+    color: white;
+    padding: 8px 15px; /* Modificado: Más compacto */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em; /* Modificado: Más pequeño */
+    transition: background-color 0.3s ease;
+}
+
+.print-button:hover {
+    background-color: #0056b3;
+}
+
+/* Estilos para ocultar elementos en la impresión si es necesario */
+@media print {
+    /* Oculta los botones de acción en la tabla cuando se imprime */
+    .inventory-table .action-button,
+    .inventory-table .editable-cell[data-column="supplierId"] { /* Oculta la edición del proveedor si es un select, o ajústalo si no lo es */
+        display: none;
+    }
+    /* Oculta el botón de añadir producto */
+    .add-product-button {
+        display: none;
+    }
+    /* Oculta los botones de ajuste estacional */
+    .seasonal-adjustment-container button {
+        display: none;
+    }
+    /* Oculta el botón de imprimir y su contenedor */
+    .print-button-container, .print-button {
+        display: none;
+    }
+    /* Oculta la navegación */
+    .main-nav {
+        display: none;
+    }
+    /* Puedes ajustar márgenes o tamaños de fuente para una mejor impresión */
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    main {
+        padding: 0;
+    }
+    .inventory-table, .order-table {
+        font-size: 9pt; /* Ajusta el tamaño de la fuente para impresión, aún más pequeño */
+    }
+    /* Ajustes específicos para que las tablas de impresión se vean bien */
+    .inventory-table td, .order-table td {
+        padding: 3px 5px; /* Reducir aún más el padding en impresión */
+    }
+}
