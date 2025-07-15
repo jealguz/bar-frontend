@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './ProductForm.css';
 
-// ¡LÍNEA CLAVE AJUSTADA! Define la URL base de tu API aquí.
-// Usará la variable de entorno VITE_API_URL si está definida (en Netlify),
-// de lo contrario, usará 'http://localhost:5000' para desarrollo local.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// ELIMINAR ESTA LÍNEA: Ya no se necesita definir API_BASE_URL aquí,
+// ya que se pasará como prop desde App.jsx
+// const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancelEdit }) {
+// AJUSTE CLAVE: Añadir API_BASE_URL a las props desestructuradas
+function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancelEdit, API_BASE_URL }) {
   const initialFormState = {
     referencia_articulo: '',
     descripcion: '',
@@ -34,13 +34,13 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
       : initialFormState;
 
     setFormData(currentData);
-  }, [productToEdit]);
+  }, [productToEdit]); // Mantener initialFormState en dependencias si productToEdit puede ser null y quieres resetear completamente
 
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
         setSuppliersLoading(true);
-        // AJUSTE AQUÍ: Usando API_BASE_URL
+        // Usando la prop API_BASE_URL
         const response = await axios.get(`${API_BASE_URL}/api/suppliers`);
         setSuppliers(response.data);
       } catch (err) {
@@ -50,8 +50,11 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
         setSuppliersLoading(false);
       }
     };
-    fetchSuppliers();
-  }, []);
+    // Asegurarse de que API_BASE_URL esté definido antes de intentar la llamada
+    if (API_BASE_URL) {
+      fetchSuppliers();
+    }
+  }, [API_BASE_URL]); // Añadir API_BASE_URL como dependencia
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -62,9 +65,11 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
     }
 
     if (name === 'stock_minimo' && !productToEdit) {
+      // Solo establece stock_minimo_base si es un nuevo producto y stock_minimo está siendo cambiado
       newFormData.stock_minimo_base = newFormData.stock_minimo;
     }
 
+    // Asegurarse de que stock_minimo y inventario_actual son números para los cálculos
     const currentStockMinimo = (name === 'stock_minimo' ? (parseInt(value) || 0) : newFormData.stock_minimo);
     const currentInventarioActual = (name === 'inventario_actual' ? (parseInt(value) || 0) : newFormData.inventario_actual);
 
@@ -86,20 +91,29 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
 
     try {
       const dataToSend = { ...formData };
-      delete dataToSend.Supplier;
+      // Eliminar 'Supplier' si viene del objeto de edición para evitar problemas con Sequelize
+      // Al crear, 'Supplier' no debería existir de todas formas.
+      if (dataToSend.Supplier) {
+        delete dataToSend.Supplier;
+      }
+      // También podrías querer eliminar 'id' si estás enviando un nuevo producto
+      // Aunque el backend suele ignorarlo para POST
+      if (!productToEdit && dataToSend.id) {
+          delete dataToSend.id;
+      }
 
       let response;
       if (productToEdit) {
-        // AJUSTE AQUÍ: Usando API_BASE_URL para PUT
+        // Usando la prop API_BASE_URL
         response = await axios.put(`${API_BASE_URL}/api/products/${productToEdit.id}`, dataToSend);
         if (onProductUpdated) onProductUpdated(response.data);
         setMessage('Producto actualizado con éxito!');
       } else {
-        // AJUSTE AQUÍ: Usando API_BASE_URL para POST
+        // Usando la prop API_BASE_URL
         response = await axios.post(`${API_BASE_URL}/api/products`, dataToSend);
         if (onProductAdded) onProductAdded(response.data);
         setMessage('Producto añadido con éxito!');
-        setFormData(initialFormState);
+        setFormData(initialFormState); // Resetear el formulario para añadir otro
       }
       console.log('Respuesta de la API:', response.data);
     } catch (err) {
@@ -107,6 +121,12 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
       setError(err.response && err.response.data && err.response.data.error
                   ? err.response.data.error
                   : 'Error al guardar el producto.');
+    } finally {
+        // Limpiar mensajes después de un tiempo
+        setTimeout(() => {
+            setMessage('');
+            setError('');
+        }, 3000);
     }
   };
 
@@ -123,7 +143,7 @@ function ProductForm({ onProductAdded, productToEdit, onProductUpdated, onCancel
             value={formData.referencia_articulo}
             onChange={handleChange}
             required
-            disabled={!!productToEdit}
+            disabled={!!productToEdit} // Deshabilita la edición de la referencia si se está editando un producto existente
           />
         </div>
 
