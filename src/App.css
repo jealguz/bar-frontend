@@ -427,3 +427,34 @@ main h2 {
         padding: 3px 5px; /* Reducir aún más el padding en impresión */
     }
 }
+
+/* --- Estilos para la barra de búsqueda (NUEVOS) --- */
+.search-bar-container {
+    margin: 20px 0; /* Espacio arriba y abajo */
+    display: flex; /* Para centrar el input */
+    justify-content: center; /* Centrar horizontalmente */
+    align-items: center; /* Alinear verticalmente */
+    width: 100%;
+}
+
+.search-input {
+    width: 50%; /* Ocupa el 50% del ancho del contenedor */
+    max-width: 400px; /* Ancho máximo para que no sea demasiado grande en pantallas amplias */
+    padding: 10px 15px; /* Relleno interno */
+    border: 1px solid #ccc; /* Borde suave */
+    border-radius: 20px; /* Bordes redondeados para un look moderno */
+    font-size: 1em; /* Tamaño de fuente legible */
+    outline: none; /* Quitar el contorno al enfocar */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease; /* Transición suave */
+    box-sizing: border-box; /* Incluir padding y border en el ancho total */
+}
+
+.search-input::placeholder {
+    color: #999; /* Color del texto del placeholder */
+}
+
+.search-input:focus {
+    border-color: #007bff; /* Borde azul al enfocar */
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.3); /* Sombra suave al enfocar */
+}
+/* --- FIN Estilos para la barra de búsqueda --- */
