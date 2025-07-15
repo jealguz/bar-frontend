@@ -20,16 +20,22 @@ function App() {
   const [editingCell, setEditingCell] = useState(null);
   const [tempCellValue, setTempCellValue] = useState('');
 
+  // NUEVO ESTADO PARA EL TÉRMINO DE BÚSQUEDA
+  const [searchTerm, setSearchTerm] = useState(''); // Estado para el término de búsqueda
+
   const [suppliersForNav, setSuppliersForNav] = useState([]);
   const [suppliersNavLoading, setSuppliersNavLoading] = useState(true);
   const [suppliersNavError, setSuppliersNavError] = useState(null);
   const [selectedSupplierId, setSelectedSupplierId] = useState(null);
   const [message, setMessage] = useState('');
 
-  const fetchProducts = useCallback(async () => {
+  // AJUSTE EN fetchProducts: Ahora acepta un parámetro de búsqueda
+  const fetchProducts = useCallback(async (currentSearchTerm = '') => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/products`); // AJUSTE AQUÍ
+      const response = await axios.get(`${API_BASE_URL}/api/products`, {
+        params: { search: currentSearchTerm } // Envía el término de búsqueda al backend
+      });
       setProducts(response.data);
       setError(null);
     } catch (err) {
@@ -38,12 +44,12 @@ function App() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // Sin dependencias aquí, ya que el término de búsqueda se pasa como argumento.
 
   const fetchSuppliersForNav = useCallback(async () => {
     try {
       setSuppliersNavLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/suppliers`); // AJUSTE AQUÍ
+      const response = await axios.get(`${API_BASE_URL}/api/suppliers`);
       setSuppliersForNav(response.data);
       setSuppliersNavError(null);
     } catch (err) {
@@ -60,18 +66,19 @@ function App() {
 
   useEffect(() => {
     if (currentView === 'products' || currentView === 'products_to_order') {
-      fetchProducts();
+      // Pasa el searchTerm actual a fetchProducts
+      fetchProducts(searchTerm);
     }
-  }, [currentView, selectedSupplierId, fetchProducts]);
+  }, [currentView, selectedSupplierId, searchTerm, fetchProducts]); // Añade searchTerm a las dependencias
 
   const handleProductAdded = (newProduct) => {
-    fetchProducts();
+    fetchProducts(searchTerm); // Vuelve a cargar con el término de búsqueda actual
     setShowProductForm(false);
     setProductToEdit(null);
   };
 
   const handleProductUpdated = (updatedProduct) => {
-    fetchProducts();
+    fetchProducts(searchTerm); // Vuelve a cargar con el término de búsqueda actual
     setShowProductForm(false);
     setProductToEdit(null);
   };
@@ -79,8 +86,9 @@ function App() {
   const handleDeleteProduct = async (productId) => {
     if (window.confirm('¿Estás seguro de que quieres eliminar este producto?')) {
       try {
-        await axios.delete(`${API_BASE_URL}/api/products/${productId}`); // AJUSTE AQUÍ
-        setProducts((prevProducts) => prevProducts.filter((p) => p.id !== productId));
+        await axios.delete(`${API_BASE_URL}/api/products/${productId}`);
+        // No es necesario filtrar aquí, fetchProducts recargará la lista
+        fetchProducts(searchTerm); // Recarga la lista para reflejar el cambio y el filtro
         console.log(`Producto con ID ${productId} eliminado.`);
       } catch (err) {
         console.error("Error al eliminar el producto:", err.response ? err.response.data : err.message);
@@ -119,7 +127,7 @@ function App() {
       if (isNaN(parsedValue)) {
         alert('Por favor, ingresa un número válido.');
         setEditingCell(null);
-        fetchProducts();
+        fetchProducts(searchTerm); // Recarga para restaurar el valor original si no es válido
         return;
       }
 
@@ -129,19 +137,24 @@ function App() {
       }
 
       let updateData = { ...productToUpdate, [fieldName]: parsedValue };
-      updateData.stock_maximo = Math.ceil(updateData.stock_minimo * 1.30);
-      updateData.cantidad_solicitada = Math.max(0, updateData.stock_maximo - updateData.inventario_actual);
-      delete updateData.Supplier;
+      // Recalcular stock_maximo y cantidad_solicitada si stock_minimo o inventario_actual cambian
+      if (fieldName === 'stock_minimo') {
+        updateData.stock_maximo = Math.ceil(parsedValue * 1.30);
+        updateData.cantidad_solicitada = Math.max(0, updateData.stock_maximo - updateData.inventario_actual);
+      } else if (fieldName === 'inventario_actual') {
+        updateData.cantidad_solicitada = Math.max(0, updateData.stock_maximo - parsedValue);
+      }
+      delete updateData.Supplier; // Eliminar la relación de proveedor para evitar errores en el PUT
 
-      await axios.put(`${API_BASE_URL}/api/products/${productId}`, updateData); // AJUSTE AQUÍ
+      await axios.put(`${API_BASE_URL}/api/products/${productId}`, updateData);
 
-      fetchProducts();
+      fetchProducts(searchTerm); // Recarga para reflejar el cambio y el filtro
       setEditingCell(null);
       setMessage('¡Producto actualizado exitosamente!');
     } catch (err) {
       console.error("Error al actualizar el producto en línea:", err.response ? err.response.data : err.message);
       setError('Error al guardar el cambio. Verifica que el valor sea válido y el backend esté funcionando.');
-      fetchProducts();
+      fetchProducts(searchTerm); // Recarga para restaurar el valor original en caso de error
       setEditingCell(null);
     } finally {
       setTimeout(() => {
@@ -160,6 +173,7 @@ function App() {
       e.target.blur();
     } else if (e.key === 'Escape') {
       setEditingCell(null);
+      // Restaurar el valor original al cancelar la edición
       setTempCellValue(products.find(p => p.id === productId)?.[fieldName] || '');
     }
   };
@@ -168,9 +182,9 @@ function App() {
     if (window.confirm('¿Estás seguro de que quieres activar la temporada alta (aumentar Stock Mínimo en 30% para todos los productos)? Esto también ajustará el Stock Máximo y la Cantidad Solicitada.')) {
       try {
         setLoading(true);
-        await axios.post(`${API_BASE_URL}/api/products/activate-high-season`); // AJUSTE AQUÍ
+        await axios.post(`${API_BASE_URL}/api/products/activate-high-season`);
         setMessage('¡Temporada alta activada y productos ajustados!');
-        await fetchProducts();
+        await fetchProducts(searchTerm); // Recarga con el término de búsqueda actual
       } catch (err) {
         console.error("Error al activar temporada alta:", err.response ? err.response.data : err.message);
         setError('Error al activar la temporada alta.');
@@ -185,9 +199,9 @@ function App() {
     if (window.confirm('¿Estás seguro de que quieres desactivar la temporada alta (restaurar Stock Mínimo a valores base para todos los productos)? Esto también ajustará el Stock Máximo y la Cantidad Solicitada.')) {
       try {
         setLoading(true);
-        await axios.post(`${API_BASE_URL}/api/products/deactivate-high-season`); // AJUSTE AQUÍ
+        await axios.post(`${API_BASE_URL}/api/products/deactivate-high-season`);
         setMessage('¡Temporada alta desactivada y productos restaurados!');
-        await fetchProducts();
+        await fetchProducts(searchTerm); // Recarga con el término de búsqueda actual
       } catch (err) {
         console.error("Error al desactivar temporada alta:", err.response ? err.response.data : err.message);
         setError('Error al desactivar la temporada alta.');
@@ -202,7 +216,8 @@ function App() {
     window.print();
   };
 
-  const filteredProducts = selectedSupplierId
+  // El filtrado por proveedor se mantiene, pero ahora se aplica sobre los resultados de la búsqueda
+  const productsToDisplay = selectedSupplierId
     ? products.filter(product => product.supplierId === selectedSupplierId)
     : products;
 
@@ -210,7 +225,7 @@ function App() {
     ? suppliersForNav.find(s => s.id === selectedSupplierId)?.name || 'Desconocido'
     : 'Todos los Productos';
 
-  const productsToOrder = products.filter(product => product.cantidad_solicitada > 0);
+  const productsToOrder = products.filter(product => product.cantidad_solicitada > 0); // Esto debería seguir operando sobre 'products' (resultado de la búsqueda o todos)
 
   return (
     <div className="App">
@@ -255,6 +270,7 @@ function App() {
             setShowProductForm(false);
             setProductToEdit(null);
             setSelectedSupplierId(null);
+            setSearchTerm(''); // Limpiar búsqueda al volver a "Todos los Productos"
           }}
         >
           Todos los Productos
@@ -267,6 +283,7 @@ function App() {
             setShowProductForm(false);
             setProductToEdit(null);
             setSelectedSupplierId(null);
+            setSearchTerm(''); // Limpiar búsqueda
           }}
         >
           Productos Pendientes de Compra
@@ -279,6 +296,7 @@ function App() {
             setShowProductForm(false);
             setProductToEdit(null);
             setSelectedSupplierId(null);
+            setSearchTerm(''); // Limpiar búsqueda
           }}
         >
           Historial de Movimientos
@@ -298,6 +316,7 @@ function App() {
                 setShowProductForm(false);
                 setProductToEdit(null);
                 setSelectedSupplierId(supplier.id);
+                setSearchTerm(''); // Limpiar búsqueda al filtrar por proveedor
               }}
             >
               {supplier.name}
@@ -307,7 +326,10 @@ function App() {
 
         <button
           className={currentView === 'suppliers' ? 'nav-button active' : 'nav-button'}
-          onClick={() => setCurrentView('suppliers')}
+          onClick={() => {
+            setCurrentView('suppliers');
+            setSearchTerm(''); // Limpiar búsqueda
+          }}
         >
           Gestión de Proveedores
         </button>
@@ -329,18 +351,31 @@ function App() {
                 onProductUpdated={handleProductUpdated}
                 onCancelEdit={handleCancelProductEdit}
                 suppliers={suppliersForNav}
+                API_BASE_URL={API_BASE_URL} // Pasa la URL base al formulario si lo necesita
               />
             )}
 
             {!showProductForm && (
               <>
                 <h2>Lista de Productos - {selectedSupplierName}</h2>
+
+                {/* NUEVO: CAMPO DE BÚSQUEDA */}
+                <div className="search-bar-container">
+                  <input
+                    type="text"
+                    placeholder="Buscar por referencia o descripción..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+
                 {loading && !message && !error ? (
                   <p>Cargando productos...</p>
                 ) : error ? (
                   <p style={{ color: 'red' }}>{error}</p>
-                ) : filteredProducts.length === 0 ? (
-                  <p>No hay productos en el inventario {selectedSupplierId ? `para ${selectedSupplierName}` : ''}. ¡Añade algunos!</p>
+                ) : productsToDisplay.length === 0 ? (
+                  <p>No se encontraron productos {searchTerm ? `con el término "${searchTerm}"` : ''}{selectedSupplierId ? ` para ${selectedSupplierName}` : ''}. ¡Añade algunos!</p>
                 ) : (
                   <table className="inventory-table">
                     <thead>
@@ -359,7 +394,7 @@ function App() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredProducts.map((product) => (
+                      {productsToDisplay.map((product) => (
                         <tr key={product.id}>
                           <td>{product.referencia_articulo}</td>
                           <td>{product.descripcion}</td>
@@ -438,40 +473,40 @@ function App() {
               <p>Estos son los productos que necesitan ser solicitados a sus proveedores:</p>
             )}
             {!loading && !error && productsToOrder.length > 0 && (
-                <table className="inventory-table order-table">
-                  <thead>
-                    <tr>
-                      <th>Ref. Artículo</th>
-                      <th>Descripción</th>
-                      <th>Cantidad a Solicitar</th>
-                      <th>Unidad</th>
-                      <th>Presentación</th>
-                      <th>Proveedor</th>
+              <table className="inventory-table order-table">
+                <thead>
+                  <tr>
+                    <th>Ref. Artículo</th>
+                    <th>Descripción</th>
+                    <th>Cantidad a Solicitar</th>
+                    <th>Unidad</th>
+                    <th>Presentación</th>
+                    <th>Proveedor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {productsToOrder.map(product => (
+                    <tr key={product.id}>
+                      <td>{product.referencia_articulo}</td>
+                      <td>{product.descripcion}</td>
+                      <td>{product.cantidad_solicitada}</td>
+                      <td>{product.unidad}</td>
+                      <td>{product.presentacion}</td>
+                      <td>{product.Supplier ? product.Supplier.name : 'N/A'}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {productsToOrder.map(product => (
-                      <tr key={product.id}>
-                        <td>{product.referencia_articulo}</td>
-                        <td>{product.descripcion}</td>
-                        <td>{product.cantidad_solicitada}</td>
-                        <td>{product.unidad}</td>
-                        <td>{product.presentacion}</td>
-                        <td>{product.Supplier ? product.Supplier.name : 'N/A'}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
             )}
           </div>
         )}
 
         {currentView === 'suppliers' && (
-          <SupplierList onSupplierChange={fetchSuppliersForNav} />
+          <SupplierList onSupplierChange={fetchSuppliersForNav} API_BASE_URL={API_BASE_URL} />
         )}
 
         {currentView === 'history' && (
-          <InventoryHistory />
+          <InventoryHistory API_BASE_URL={API_BASE_URL} />
         )}
       </main>
     </div>
