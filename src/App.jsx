@@ -230,7 +230,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>Inventario Restaurante</h1>
+        <h1>Inventario Bar</h1>
       </header>
 
       {error && <p className="error-message">{error}</p>}
